@@ -29,15 +29,15 @@ Extract the following information and return it as a valid JSON object:
     "meeting_title": "Title of the meeting",
     "meeting_type": "Type of meeting (e.g., Board Meeting, Team Standup, Project Review)",
     "date": "Meeting date in YYYY-MM-DD format",
+    "meeting_mode": "Online or Offline",
     "time": "Meeting time in HH:MM format (24-hour)",
-    "venue": "Location or platform where meeting was held",
-    "meeting_called_by": "Person who called the meeting",
-    "meeting_prepared_by": "Person who prepared the minutes",
+    "venue": "Location, conference room, or link (Google Meet etc)",
+    "hosted_by": "Person who hosted or called the meeting",
     "attendees": [
-        {{"name": "Full Name", "email": "email@example.com"}}
+        {{"name": "Name", "email": "Email", "designation": "Designation/Role", "whatsapp_number": "Phone/WhatsApp", "remarks": "Any remark or note mentioned for this person"}}
     ],
     "absentees": [
-        {{"name": "Full Name", "email": "email@example.com"}}
+        {{"name": "Name", "email": "Email", "designation": "Designation/Role", "whatsapp_number": "Phone/WhatsApp", "remarks": "Any remark or note mentioned for this person"}}
     ],
     "agenda": [
         {{"topic": "Agenda topic title", "description": "Brief description"}}

@@ -207,7 +207,7 @@ class EmailService:
         await EmailService.send_email(to_email, subject, html)
 
     @staticmethod
-    async def send_meeting_summary(to_email: str, recipient_name: str, meeting_title: str, is_absent: bool, summary: str, task_html: str, pdf_data: bytes = None, pdf_name: str = None):
+    async def send_meeting_summary(to_email: str, recipient_name: str, meeting_title: str, is_absent: bool, summary: str, task_html: str, pdf_data: bytes = None, pdf_name: str = None, remarks: str = None):
         subject = f"MOM & Summary: {meeting_title}"
         
         if is_absent:
@@ -237,9 +237,20 @@ class EmailService:
             </div>
             """
 
+        remarks_html = ""
+        if remarks:
+            remarks_html = f"""
+            <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e0f2fe;">Personal Remarks specifically for you</h3>
+            <div style="background-color: #f0f9ff; padding: 16px; border-radius: 6px; margin-bottom: 24px; border: 1px solid #bae6fd;">
+                <p style="margin: 0; font-size: 14px; color: #0369a1; line-height: 1.6; white-space: pre-wrap;"><strong>HR/Admin Note:</strong> {remarks}</p>
+            </div>
+            """
+
         content = f"""
             <p style="font-size: 16px; color: #475569; margin: 0 0 16px;">Dear {recipient_name},</p>
             {greeting_box}
+            
+            {remarks_html}
             
             <h3 style="color: #1e293b; font-size: 16px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">Discussion Summary</h3>
             <div style="background-color: #f8fafc; padding: 16px; border-radius: 6px; margin-bottom: 24px; border: 1px solid #e2e8f0;">

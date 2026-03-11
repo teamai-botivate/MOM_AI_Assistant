@@ -19,6 +19,9 @@ export interface Attendee {
   meeting_id: number;
   user_name: string;
   email?: string;
+  designation?: string;
+  whatsapp_number?: string;
+  remarks?: string;
   attendance_status: AttendanceStatus;
 }
 
@@ -68,27 +71,14 @@ export interface Meeting {
   title: string;
   organization?: string;
   meeting_type?: string;
-  meeting_mode?: 'Online' | 'Offline';
+  meeting_mode?: string;
   date?: string;
   time?: string;
   venue?: string;
-  called_by?: string;
-  prepared_by?: string;
+  hosted_by?: string;
   file_path?: string;
   created_by?: number;
   created_at: string;
-  // BR fields
-  is_board_resolution?: boolean;
-  resolution_number?: string;
-  resolution_type?: string;
-  resolution_status?: string;
-  resolution_text?: string;
-  proposer?: string;
-  seconder?: string;
-  voting_for?: number;
-  voting_against?: number;
-  voting_abstain?: number;
-  // Relations
   attendees: Attendee[];
   agenda_items: AgendaItem[];
   discussion?: Discussion;
@@ -101,25 +91,10 @@ export interface MeetingListItem {
   title: string;
   organization?: string;
   date?: string;
+  time?: string;
   venue?: string;
   created_at: string;
   task_count: number;
-  // BR fields
-  is_board_resolution?: boolean;
-  resolution_number?: string;
-  resolution_status?: string;
-  proposer?: string;
-  seconder?: string;
-}
-
-export interface BRDocument {
-  id: number;
-  meeting_id: number;
-  file_name: string;
-  file_path: string;
-  file_size?: number;
-  file_type?: string;
-  uploaded_at: string;
 }
 
 export interface Notification {
@@ -180,13 +155,19 @@ export interface MeetingFormData {
   title: string;
   organization?: string;
   meeting_type?: string;
-  meeting_mode?: 'Online' | 'Offline';
+  meeting_mode?: string;
   date?: string;
   time?: string;
   venue?: string;
-  called_by?: string;
-  prepared_by?: string;
-  attendees: { user_name: string; email?: string; attendance_status: AttendanceStatus }[];
+  hosted_by?: string;
+  attendees: {
+    user_name: string;
+    email?: string;
+    designation?: string;
+    whatsapp_number?: string;
+    remarks?: string;
+    attendance_status: AttendanceStatus;
+  }[];
   agenda_items: { topic: string; description?: string }[];
   discussion_summary?: string;
   tasks: {
@@ -198,16 +179,6 @@ export interface MeetingFormData {
     status: TaskStatus;
   }[];
   next_meeting?: { next_date?: string; next_time?: string };
-  // BR fields
-  is_board_resolution?: boolean;
-  resolution_type?: string;
-  resolution_status?: string;
-  resolution_text?: string;
-  proposer?: string;
-  seconder?: string;
-  voting_for?: number;
-  voting_against?: number;
-  voting_abstain?: number;
 }
 
 export interface AttendeeStatusUpdate {

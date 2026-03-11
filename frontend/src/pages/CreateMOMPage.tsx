@@ -5,18 +5,15 @@ import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import api from '../api';
 import type { MeetingFormData, AttendanceStatus, TaskStatus } from '../types';
 
-const ONLINE_VENUES = ['Google Meet', 'Zoom', 'Other'];
-const OFFLINE_VENUES = ['Conference Hall', 'Other'];
-
 const emptyForm: MeetingFormData = {
   title: '',
-  organization: 'Botivate Service LLP',
+  organization: 'Botivate Services LLP',
   meeting_type: '',
-  meeting_mode: undefined,
+  meeting_mode: 'Online',
   date: '',
   time: '',
   venue: '',
-  called_by: '',
+  hosted_by: '',
   attendees: [],
   agenda_items: [],
   discussion_summary: '',
@@ -26,27 +23,16 @@ const emptyForm: MeetingFormData = {
 
 export default function CreateMOMPage() {
   const [form, setForm] = useState<MeetingFormData>({ ...emptyForm });
-  const [venueCustom, setVenueCustom] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const updateField = (field: string, value: any) => setForm((p) => ({ ...p, [field]: value }));
 
-  const handleModeChange = (mode: 'Online' | 'Offline') => {
-    setForm((p) => ({ ...p, meeting_mode: mode, venue: '' }));
-    setVenueCustom(false);
-  };
-
-  const handleVenueSelect = (val: string) => {
-    if (val === 'Other') { setVenueCustom(true); setForm((p) => ({ ...p, venue: '' })); }
-    else { setVenueCustom(false); setForm((p) => ({ ...p, venue: val })); }
-  };
-
   // Attendees
   const addAttendee = () =>
     setForm((p) => ({
       ...p,
-      attendees: [...p.attendees, { user_name: '', email: '', attendance_status: 'Present' as AttendanceStatus }],
+      attendees: [...p.attendees, { user_name: '', email: '', designation: '', whatsapp_number: '', remarks: '', attendance_status: 'Present' as AttendanceStatus }],
     }));
   const removeAttendee = (i: number) =>
     setForm((p) => ({ ...p, attendees: p.attendees.filter((_, idx) => idx !== i) }));
@@ -112,9 +98,9 @@ export default function CreateMOMPage() {
         next_meeting:
           form.next_meeting && (form.next_meeting.next_date?.trim() !== '' || form.next_meeting.next_time?.trim() !== '')
             ? {
-                next_date: form.next_meeting.next_date && form.next_meeting.next_date.trim() !== '' ? form.next_meeting.next_date : null,
-                next_time: form.next_meeting.next_time && form.next_meeting.next_time.trim() !== '' ? form.next_meeting.next_time : null,
-              }
+              next_date: form.next_meeting.next_date && form.next_meeting.next_date.trim() !== '' ? form.next_meeting.next_date : null,
+              next_time: form.next_meeting.next_time && form.next_meeting.next_time.trim() !== '' ? form.next_meeting.next_time : null,
+            }
             : null,
       };
       const { data } = await api.post('/meetings/', payload);
@@ -155,52 +141,35 @@ export default function CreateMOMPage() {
             </div>
             <div>
               <label className={labelClass}>Organization</label>
-              <input value={form.organization || ''} onChange={(e) => updateField('organization', e.target.value)} className={`${inputClass} bg-slate-50 dark:bg-slate-800`} />
+              <input value={form.organization} onChange={(e) => updateField('organization', e.target.value)} className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Meeting Type</label>
-              <input value={form.meeting_type || ''} onChange={(e) => updateField('meeting_type', e.target.value)} placeholder="e.g., Board Meeting" className={inputClass} />
+              <input value={form.meeting_type} onChange={(e) => updateField('meeting_type', e.target.value)} placeholder="e.g., Board Meeting" className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Hosted By</label>
-              <input value={form.called_by || ''} onChange={(e) => updateField('called_by', e.target.value)} className={inputClass} />
+              <label className={labelClass}>Meeting Mode</label>
+              <select value={form.meeting_mode} onChange={(e) => updateField('meeting_mode', e.target.value)} className={inputClass}>
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Venue / Platform</label>
+              <input value={form.venue} onChange={(e) => updateField('venue', e.target.value)} placeholder={form.meeting_mode === 'Online' ? 'Google Meet link...' : 'Conference Hall...'} className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Date</label>
-              <input type="date" value={form.date || ''} onChange={(e) => updateField('date', e.target.value)} className={inputClass} />
+              <input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Time</label>
-              <input type="time" value={form.time || ''} onChange={(e) => updateField('time', e.target.value)} className={inputClass} />
+              <input type="time" value={form.time} onChange={(e) => updateField('time', e.target.value)} className={inputClass} />
             </div>
-            {/* Meeting Mode */}
-            <div className="md:col-span-2">
-              <label className={labelClass}>Meeting Mode</label>
-              <div className="flex gap-3 mt-1">
-                <button type="button" onClick={() => handleModeChange('Online')}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${form.meeting_mode === 'Online' ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'}`}>
-                  🌐 Online
-                </button>
-                <button type="button" onClick={() => handleModeChange('Offline')}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${form.meeting_mode === 'Offline' ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'}`}>
-                  🏢 Offline
-                </button>
-              </div>
+            <div>
+              <label className={labelClass}>Hosted By</label>
+              <input value={form.hosted_by} onChange={(e) => updateField('hosted_by', e.target.value)} className={inputClass} />
             </div>
-            {form.meeting_mode && (
-              <div className="md:col-span-2">
-                <label className={labelClass}>Venue</label>
-                <div className="flex gap-3">
-                  <select value={venueCustom ? 'Other' : (form.venue || '')} onChange={(e) => handleVenueSelect(e.target.value)} className={`${inputClass} flex-1`}>
-                    <option value="">-- Select Venue --</option>
-                    {(form.meeting_mode === 'Online' ? ONLINE_VENUES : OFFLINE_VENUES).map((v) => <option key={v} value={v}>{v}</option>)}
-                  </select>
-                  {venueCustom && (
-                    <input placeholder={form.meeting_mode === 'Online' ? 'Enter meeting link' : 'Enter venue name'} value={form.venue || ''} onChange={(e) => updateField('venue', e.target.value)} className={`${inputClass} flex-1`} />
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
@@ -213,17 +182,26 @@ export default function CreateMOMPage() {
             </button>
           </div>
           {form.attendees.map((a, i) => (
-            <div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-              <input placeholder="Name" value={a.user_name} onChange={(e) => updateAttendee(i, 'user_name', e.target.value)} className={inputClass} />
-              <input placeholder="Email" value={a.email || ''} onChange={(e) => updateAttendee(i, 'email', e.target.value)} className={inputClass} />
-              <select value={a.attendance_status} onChange={(e) => updateAttendee(i, 'attendance_status', e.target.value)} className={inputClass}>
-                <option value="Present">Present</option>
-                <option value="Absent">Absent</option>
-                <option value="Excused">Excused</option>
-              </select>
-              <button type="button" onClick={() => removeAttendee(i)} className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1">
-                <TrashIcon className="w-4 h-4" /> Remove
-              </button>
+            <div key={i} className="flex flex-col gap-3 mb-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input placeholder="Name *" value={a.user_name} onChange={(e) => updateAttendee(i, 'user_name', e.target.value)} className={inputClass} />
+                <input placeholder="Email" value={a.email || ''} onChange={(e) => updateAttendee(i, 'email', e.target.value)} className={inputClass} />
+                <input placeholder="Designation" value={a.designation || ''} onChange={(e) => updateAttendee(i, 'designation', e.target.value)} className={inputClass} />
+                <input placeholder="WhatsApp Number" value={a.whatsapp_number || ''} onChange={(e) => updateAttendee(i, 'whatsapp_number', e.target.value)} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input placeholder="Remarks (Sent in email notification if present)" value={a.remarks || ''} onChange={(e) => updateAttendee(i, 'remarks', e.target.value)} className={`md:col-span-2 ${inputClass}`} />
+                <select value={a.attendance_status} onChange={(e) => updateAttendee(i, 'attendance_status', e.target.value)} className={inputClass}>
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Excused">Excused</option>
+                </select>
+                <div className="flex items-center">
+                  <button type="button" onClick={() => removeAttendee(i)} className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1">
+                    <TrashIcon className="w-4 h-4" /> Remove
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </section>
@@ -270,7 +248,7 @@ export default function CreateMOMPage() {
           {form.tasks.map((t, i) => (
             <div key={i} className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3 items-start bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
               <input placeholder="Task title" value={t.title} onChange={(e) => updateTask(i, 'title', e.target.value)} className={inputClass} />
-              
+
               <div className="md:col-span-2 flex flex-col gap-2">
                 <select
                   value={(t as any)._manualMode ? '__OTHER__' : (t.responsible_person || '')}
@@ -309,7 +287,7 @@ export default function CreateMOMPage() {
                   {form.attendees.map((a, aIdx) => (a.user_name ? <option key={aIdx} value={a.user_name}>{a.user_name} {a.email ? `(${a.email})` : ''}</option> : null))}
                   <option value="__OTHER__">Other / Manual</option>
                 </select>
-                
+
                 {(t as any)._manualMode && (
                   <div className="grid grid-cols-2 gap-2">
                     <input placeholder="Name" value={t.responsible_person || ''} onChange={(e) => updateTask(i, 'responsible_person', e.target.value)} className={inputClass} />

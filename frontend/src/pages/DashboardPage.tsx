@@ -103,7 +103,7 @@ export default function DashboardPage() {
                 </Link>
                 <p className="text-xs text-slate-400 mt-1 mb-5">{last_meeting.date}</p>
                 <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-3 text-center">
+                  <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-3 text-center">
                     <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wide">Tasks Done</p>
                     <p className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300 mt-1">
                       {last_meeting.tasks?.filter(t => t.status === 'Completed').length || 0}
@@ -133,13 +133,13 @@ export default function DashboardPage() {
 
       {/* ── Stats Grid ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
-        <StatCard title="Total Meetings"   value={stats.total_meetings}     color="blue"   icon={<CalendarDaysIcon className="w-5 h-5" />} />
-        <StatCard title="Total Tasks"      value={stats.total_tasks}        color="indigo" icon={<ClipboardDocumentListIcon className="w-5 h-5" />} />
-        <StatCard title="Pending"          value={stats.pending_tasks}      color="yellow" icon={<ClockIcon className="w-5 h-5" />} />
-        <StatCard title="In Progress"      value={stats.in_progress_tasks}  color="purple" icon={<ClockIcon className="w-5 h-5" />} />
-        <StatCard title="Completed"        value={stats.completed_tasks}    color="green"  icon={<CheckCircleIcon className="w-5 h-5" />} />
-        <StatCard title="Overdue"          value={stats.overdue_tasks}      color="red"    icon={<ExclamationTriangleIcon className="w-5 h-5" />} />
-        <StatCard title="Upcoming"         value={stats.upcoming_meetings}  color="indigo" icon={<CalendarDaysIcon className="w-5 h-5" />} />
+        <StatCard title="Total Meetings" value={stats.total_meetings} color="blue" icon={<CalendarDaysIcon className="w-5 h-5" />} />
+        <StatCard title="Total Tasks" value={stats.total_tasks} color="indigo" icon={<ClipboardDocumentListIcon className="w-5 h-5" />} />
+        <StatCard title="Pending" value={stats.pending_tasks} color="yellow" icon={<ClockIcon className="w-5 h-5" />} />
+        <StatCard title="In Progress" value={stats.in_progress_tasks} color="purple" icon={<ClockIcon className="w-5 h-5" />} />
+        <StatCard title="Completed" value={stats.completed_tasks} color="green" icon={<CheckCircleIcon className="w-5 h-5" />} />
+        <StatCard title="Overdue" value={stats.overdue_tasks} color="red" icon={<ExclamationTriangleIcon className="w-5 h-5" />} />
+        <StatCard title="Upcoming" value={stats.upcoming_meetings} color="indigo" icon={<CalendarDaysIcon className="w-5 h-5" />} />
       </div>
 
       {/* ── Charts ── */}

@@ -21,38 +21,16 @@ class MeetingService:
         import logging
         logger = logging.getLogger("meeting_service")
         logger.info("Creating meeting with data: %s", data.dict())
-
-        # Auto-generate resolution_number for Board Resolutions
-        resolution_number = None
-        if data.is_board_resolution:
-            year = data.date.year if data.date else datetime.utcnow().year
-            count_result = await db.execute(
-                select(func.count(Meeting.id)).where(Meeting.is_board_resolution == True)
-            )
-            count = count_result.scalar() or 0
-            resolution_number = f"BR/{year}/{str(count + 1).zfill(3)}"
-
         meeting = Meeting(
             title=data.title,
             organization=data.organization,
             meeting_type=data.meeting_type,
+            meeting_mode=data.meeting_mode,
             date=data.date,
             time=data.time,
             venue=data.venue,
-            called_by=data.called_by,
-            prepared_by=data.prepared_by,
+            hosted_by=data.hosted_by,
             created_by=created_by,
-            # Board Resolution fields
-            is_board_resolution=data.is_board_resolution,
-            resolution_number=resolution_number,
-            resolution_type=data.resolution_type,
-            resolution_status=data.resolution_status,
-            resolution_text=data.resolution_text,
-            proposer=data.proposer,
-            seconder=data.seconder,
-            voting_for=data.voting_for or 0,
-            voting_against=data.voting_against or 0,
-            voting_abstain=data.voting_abstain or 0,
         )
         db.add(meeting)
         await db.flush()
@@ -64,6 +42,9 @@ class MeetingService:
                 meeting_id=meeting.id,
                 user_name=att.user_name,
                 email=att.email,
+                designation=att.designation,
+                whatsapp_number=att.whatsapp_number,
+                remarks=att.remarks,
                 attendance_status=att.attendance_status,
             ))
 
@@ -105,15 +86,15 @@ class MeetingService:
         return meeting
 
     @staticmethod
-    async def create_from_extraction(db: AsyncSession, extracted: ExtractedMOM, created_by: int | None = None, file_path: str | None = None, is_board_resolution: bool = False) -> Meeting:
+    async def create_from_extraction(db: AsyncSession, extracted: ExtractedMOM, created_by: int | None = None, file_path: str | None = None) -> Meeting:
         """Build a Meeting record from AI-extracted MOM data."""
 
         def _parse_date(s: str | None) -> date | None:
             if not s:
                 return None
-            for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%m/%d/%Y", "%B %d, %Y", "%d %B %Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%fZ"):
+            for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%m/%d/%Y", "%B %d, %Y", "%d %B %Y"):
                 try:
-                    return datetime.strptime(s.strip()[:10] if 'T' in s else s.strip(), fmt.split('T')[0] if 'T' in fmt else fmt).date()
+                    return datetime.strptime(s.strip(), fmt).date()
                 except ValueError:
                     continue
             return None
@@ -128,30 +109,17 @@ class MeetingService:
                     continue
             return None
 
-        # Auto-generate resolution_number for Board Resolutions
-        resolution_number = None
-        if is_board_resolution:
-            parsed_d = _parse_date(extracted.date)
-            year = parsed_d.year if parsed_d else datetime.utcnow().year
-            count_result = await db.execute(
-                select(func.count(Meeting.id)).where(Meeting.is_board_resolution == True)
-            )
-            count = count_result.scalar() or 0
-            resolution_number = f"BR/{year}/{str(count + 1).zfill(3)}"
-
         meeting = Meeting(
             title=extracted.meeting_title or "Untitled Meeting",
             organization=extracted.organization_name,
-            meeting_type="Board Resolution" if is_board_resolution else extracted.meeting_type,
+            meeting_type=extracted.meeting_type,
+            meeting_mode=extracted.meeting_mode,
             date=_parse_date(extracted.date),
             time=_parse_time(extracted.time),
             venue=extracted.venue,
-            called_by=extracted.meeting_called_by,
-            prepared_by=extracted.meeting_prepared_by,
+            hosted_by=extracted.hosted_by,
             file_path=file_path,
             created_by=created_by,
-            is_board_resolution=is_board_resolution,
-            resolution_number=resolution_number,
         )
         db.add(meeting)
         await db.flush()
@@ -162,6 +130,9 @@ class MeetingService:
                 meeting_id=meeting.id,
                 user_name=p.name,
                 email=p.email,
+                designation=p.designation,
+                whatsapp_number=p.whatsapp_number,
+                remarks=p.remarks,
                 attendance_status=AttendanceStatus.PRESENT,
             ))
         for p in extracted.absentees:
@@ -169,6 +140,9 @@ class MeetingService:
                 meeting_id=meeting.id,
                 user_name=p.name,
                 email=p.email,
+                designation=p.designation,
+                whatsapp_number=p.whatsapp_number,
+                remarks=p.remarks,
                 attendance_status=AttendanceStatus.ABSENT,
             ))
 

@@ -1,10 +1,8 @@
-1. jb meeting shedule ho raha h ya ban raha h ya MOM create kiya ja rahe h , to organuization autofill hona chahiye n , 
-
-2. convert the Called by to Host By 
-3. remove the prepared by
-4. Add meeting mode (if Online - then venue will be google meet , zoom or other(type manual) else offline then conference hall , other)
-5. Not only meeting tab (but two tabs (Upcoming and completed )
-6. in the MOM Show the next meeting time and dates and their details (if filled ) at top not at buttom 
+ab mujhe database replace karna  h google sheet se , i mean ek google worksheet me 2 spreedsheet hona chahiye ek meetings ke liye aur ek BR meetings ke liye aur fir sara database ka kaam wahi se hoga , ye batao ye kaise ho sakta h , tell m ethe solution in chat only .....
 
 
-Analyse eacha dn everything an then tell me Are you getting me , if yes then tell me what are you getting then i will tell you when to mofy the code 
+
+isme next meeting show q nhi ho raha h ..... aur agar meeting nhi ho pa raha h , mai chahta hu ki , jo carddashboarded me jiss function ya card ya components ay kuch v jisse shopw ho raha h n next meetingsn and last meetings of both Meetings and BR meetings wawahi meeting me v connect ho jaaye aur sho kare jaise ki meeting walaa meeting me aur BR wala BR me 
+
+
+now i have to add the feature of BR meetings of the company(A board resolution is a document that formalises important decisions made by the board of directors and the actions relating to them) .... tell me aur mujhe ye v prompt do , q ki aise walaa system bana liya hua ab BR wala meeting ke liye v cbananna h ussi me ek naya tab kme , now tell me how can we make it and add in this sytem , tell me in chat then i will tell you when to modify the code (also tell me the what will be the flow (Meeting type selectable BR meeting , meeting or other (manuall typing ) ) now tell me in chat 

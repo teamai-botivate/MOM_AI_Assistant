@@ -83,9 +83,9 @@ class NotificationService:
             await db.flush()
 
     @staticmethod
-    async def notify_meeting_summary(db: AsyncSession, email: str, user_name: str, meeting_title: str, is_absent: bool, summary: str, task_html: str, pdf_data: bytes = None, pdf_name: str = None):
+    async def notify_meeting_summary(db: AsyncSession, email: str, user_name: str, meeting_title: str, is_absent: bool, summary: str, task_html: str, pdf_data: bytes = None, pdf_name: str = None, remarks: str = None):
         if email:
-            await EmailService.send_meeting_summary(email, user_name, meeting_title, is_absent, summary, task_html, pdf_data=pdf_data, pdf_name=pdf_name)
+            await EmailService.send_meeting_summary(email, user_name, meeting_title, is_absent, summary, task_html, pdf_data=pdf_data, pdf_name=pdf_name, remarks=remarks)
             db.add(Notification(
                 recipient_email=email,
                 message=f"Received MOM for meeting: {meeting_title}",

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -15,32 +15,14 @@ import {
 import api from '../api';
 import type { MeetingListItem } from '../types';
 
-type TabType = 'upcoming' | 'completed';
-
 export default function MeetingsPage() {
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<TabType>('upcoming');
+  const [activeTab, setActiveTab] = useState<'Completed' | 'Upcoming'>('Upcoming');
 
   const { data: meetings = [], isLoading } = useQuery<MeetingListItem[]>({
     queryKey: ['meetings'],
     queryFn: async () => (await api.get('/meetings/')).data,
   });
-
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-
-  // Exclude board resolutions — they have their own page
-  const regularMeetings = useMemo(() => meetings.filter((m) => !m.is_board_resolution), [meetings]);
-
-  const upcomingMeetings = useMemo(
-    () => regularMeetings.filter((m) => !m.date || m.date >= today),
-    [regularMeetings, today]
-  );
-  const completedMeetings = useMemo(
-    () => regularMeetings.filter((m) => m.date && m.date < today),
-    [regularMeetings, today]
-  );
-
-  const filteredMeetings = tab === 'upcoming' ? upcomingMeetings : completedMeetings;
 
   const handleDelete = async (id: number, title: string) => {
     if (!window.confirm(`Delete meeting "${title}"?\nThis action cannot be undone.`)) return;
@@ -54,14 +36,32 @@ export default function MeetingsPage() {
     }
   };
 
+  const now = new Date();
+
+  const upcomingMeetings = meetings.filter(m => {
+    if (!m.date) return false;
+    const meetingDateStr = m.time ? `${m.date}T${m.time}` : `${m.date}T00:00:00`;
+    const meetingDate = new Date(meetingDateStr);
+    return meetingDate >= now;
+  });
+
+  const completedMeetings = meetings.filter(m => {
+    if (!m.date) return true;
+    const meetingDateStr = m.time ? `${m.date}T${m.time}` : `${m.date}T00:00:00`;
+    const meetingDate = new Date(meetingDateStr);
+    return meetingDate < now;
+  });
+
+  const displayedMeetings = activeTab === 'Completed' ? completedMeetings : upcomingMeetings;
+
   return (
     <div className="space-y-5 max-w-[1200px] mx-auto">
 
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Meetings</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{regularMeetings.length} meeting{regularMeetings.length !== 1 ? 's' : ''} total</p>
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">All Meetings</h2>
+          <p className="text-sm text-slate-400 mt-0.5">{displayedMeetings.length} meeting{displayedMeetings.length !== 1 ? 's' : ''} in {activeTab}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -80,7 +80,7 @@ export default function MeetingsPage() {
           </Link>
           <Link
             to="/create-mom"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold rounded-xl bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-200 dark:shadow-brand-900/40 transition-all active:scale-[0.98]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold rounded-xl bg-brand-600 text-white hover:bg-brand-700 shadow-md shadow-brand-200 dark:shadow-brand-900/40 transition-all active:scale-[0.98]"
           >
             <PlusIcon className="w-4 h-4" />
             Create MOM
@@ -89,26 +89,24 @@ export default function MeetingsPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 bg-slate-100 dark:bg-[#1e2436] p-1 rounded-xl w-fit">
+      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
         <button
-          onClick={() => setTab('upcoming')}
-          className={`px-5 py-2.5 text-[13px] font-bold rounded-lg transition-all ${
-            tab === 'upcoming'
-              ? 'bg-white dark:bg-[#161b27] text-brand-600 shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-          }`}
+          onClick={() => setActiveTab('Upcoming')}
+          className={`px-5 py-2 text-[13px] font-bold rounded-lg transition-colors ${activeTab === 'Upcoming'
+            ? 'bg-white dark:bg-[#161b27] text-brand-600 dark:text-brand-400 shadow-sm'
+            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+            }`}
         >
-          📅 Upcoming ({upcomingMeetings.length})
+          Upcoming ({upcomingMeetings.length})
         </button>
         <button
-          onClick={() => setTab('completed')}
-          className={`px-5 py-2.5 text-[13px] font-bold rounded-lg transition-all ${
-            tab === 'completed'
-              ? 'bg-white dark:bg-[#161b27] text-emerald-600 shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-          }`}
+          onClick={() => setActiveTab('Completed')}
+          className={`px-5 py-2 text-[13px] font-bold rounded-lg transition-colors ${activeTab === 'Completed'
+            ? 'bg-white dark:bg-[#161b27] text-brand-600 dark:text-brand-400 shadow-sm'
+            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+            }`}
         >
-          ✅ Completed ({completedMeetings.length})
+          Completed ({completedMeetings.length})
         </button>
       </div>
 
@@ -118,16 +116,14 @@ export default function MeetingsPage() {
           <div className="w-7 h-7 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-slate-400">Loading meetings…</p>
         </div>
-      ) : filteredMeetings.length === 0 ? (
+      ) : displayedMeetings.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-52 gap-3 bg-white dark:bg-[#161b27] rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
           <CalendarDaysIcon className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-          <p className="text-sm font-medium text-slate-400">
-            {tab === 'upcoming' ? 'No upcoming meetings.' : 'No completed meetings yet.'}
-          </p>
+          <p className="text-sm font-medium text-slate-400">No {activeTab.toLowerCase()} meetings found.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {filteredMeetings.map((m) => (
+          {displayedMeetings.map((m) => (
             <div
               key={m.id}
               className="group bg-white dark:bg-[#161b27] rounded-2xl border border-slate-100 dark:border-slate-800 px-5 py-4 shadow-sm hover:shadow-md hover:border-brand-200 dark:hover:border-brand-500/30 transition-all duration-200"
@@ -137,8 +133,8 @@ export default function MeetingsPage() {
                 {/* Left – Info */}
                 <div className="flex items-start gap-4 min-w-0">
                   {/* Colour avatar */}
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${tab === 'completed' ? 'bg-emerald-100 dark:bg-emerald-500/15' : 'bg-brand-100 dark:bg-brand-500/15'}`}>
-                    <CalendarDaysIcon className={`w-5 h-5 ${tab === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : 'text-brand-600 dark:text-brand-400'}`} />
+                  <div className="w-11 h-11 rounded-xl bg-brand-100 dark:bg-brand-500/15 flex items-center justify-center shrink-0">
+                    <CalendarDaysIcon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                   </div>
 
                   {/* Text */}

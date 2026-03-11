@@ -62,27 +62,15 @@ class Meeting(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(500), nullable=False)
     organization = Column(String(255), nullable=True)
-    meeting_type = Column(String(100), nullable=True)  # 'Regular Meeting', 'Board Resolution', or custom
+    meeting_type = Column(String(100), nullable=True)
+    meeting_mode = Column(String(50), nullable=True)  # Online or Offline
     date = Column(Date, nullable=True)
     time = Column(Time, nullable=True)
     venue = Column(String(255), nullable=True)
-    called_by = Column(String(255), nullable=True)
-    prepared_by = Column(String(255), nullable=True)
+    hosted_by = Column(String(255), nullable=True)
     file_path = Column(String(500), nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    # ── Board Resolution (BR) specific fields ──
-    is_board_resolution = Column(Boolean, default=False, nullable=False)
-    resolution_number = Column(String(50), nullable=True, unique=True)
-    resolution_type = Column(String(50), nullable=True)   # 'Ordinary' or 'Special'
-    resolution_status = Column(String(50), nullable=True)  # 'Pending','Passed','Rejected','Deferred'
-    resolution_text = Column(Text, nullable=True)
-    proposer = Column(String(255), nullable=True)
-    seconder = Column(String(255), nullable=True)
-    voting_for = Column(Integer, nullable=True, default=0)
-    voting_against = Column(Integer, nullable=True, default=0)
-    voting_abstain = Column(Integer, nullable=True, default=0)
 
     attendees = relationship("Attendee", back_populates="meeting", cascade="all, delete-orphan")
     agenda_items = relationship("AgendaItem", back_populates="meeting", cascade="all, delete-orphan")
@@ -90,7 +78,6 @@ class Meeting(Base):
     tasks = relationship("Task", back_populates="meeting", cascade="all, delete-orphan")
     next_meeting = relationship("NextMeeting", back_populates="meeting", uselist=False, cascade="all, delete-orphan")
     files = relationship("File", back_populates="meeting", cascade="all, delete-orphan")
-    br_documents = relationship("BRDocument", back_populates="meeting", cascade="all, delete-orphan")
 
 
 class Attendee(Base):
@@ -100,6 +87,9 @@ class Attendee(Base):
     meeting_id = Column(Integer, ForeignKey("meetings.id"), nullable=False)
     user_name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=True)
+    designation = Column(String(255), nullable=True)
+    whatsapp_number = Column(String(50), nullable=True)
+    remarks = Column(Text, nullable=True)
     attendance_status = Column(SAEnum(AttendanceStatus), default=AttendanceStatus.PRESENT)
 
     meeting = relationship("Meeting", back_populates="attendees")
@@ -191,18 +181,3 @@ class File(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
 
     meeting = relationship("Meeting", back_populates="files")
-
-
-class BRDocument(Base):
-    """Supporting documents uploaded for Board Resolutions."""
-    __tablename__ = "br_documents"
-
-    id = Column(Integer, primary_key=True, index=True)
-    meeting_id = Column(Integer, ForeignKey("meetings.id"), nullable=False)
-    file_name = Column(String(500), nullable=False)
-    file_path = Column(String(500), nullable=False)
-    file_size = Column(Integer, nullable=True)  # bytes
-    file_type = Column(String(100), nullable=True)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
-
-    meeting = relationship("Meeting", back_populates="br_documents")

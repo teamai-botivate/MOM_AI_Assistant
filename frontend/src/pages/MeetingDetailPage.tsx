@@ -18,9 +18,9 @@ import api from '../api';
 import type { Meeting } from '../types';
 
 const statusColors: Record<string, string> = {
-  Completed:   'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20',
-  'In Progress':'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20',
-  Pending:     'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20',
+  Completed: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20',
+  'In Progress': 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20',
+  Pending: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20',
 };
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
@@ -85,10 +85,11 @@ export default function MeetingDetailPage() {
   const metaItems = [
     { icon: <BuildingOfficeIcon className="w-4 h-4" />, label: 'Organization', value: meeting.organization },
     { icon: <ClipboardDocumentListIcon className="w-4 h-4" />, label: 'Type', value: meeting.meeting_type },
+    { icon: <ClipboardDocumentListIcon className="w-4 h-4" />, label: 'Mode', value: meeting.meeting_mode },
     { icon: <CalendarDaysIcon className="w-4 h-4" />, label: 'Date', value: meeting.date },
     { icon: <ClockIcon className="w-4 h-4" />, label: 'Time', value: meeting.time },
-    { icon: <MapPinIcon className="w-4 h-4" />, label: 'Venue', value: meeting.venue },
-    { icon: <UserIcon className="w-4 h-4" />, label: 'Hosted By', value: meeting.called_by },
+    { icon: <MapPinIcon className="w-4 h-4" />, label: 'Venue/Link', value: meeting.venue },
+    { icon: <UserIcon className="w-4 h-4" />, label: 'Hosted By', value: meeting.hosted_by },
   ];
 
   return (
@@ -142,12 +143,16 @@ export default function MeetingDetailPage() {
         </div>
       </div>
 
-      {/* ── Next Meeting (AT TOP) ── */}
-      {meeting.next_meeting && (
-        <Section title="Next Meeting" icon={<CalendarDaysIcon className="w-[18px] h-[18px]" />}>
-          <div className="flex items-center gap-6 text-[13px] text-slate-700 dark:text-slate-300">
-            <span className="flex items-center gap-2"><CalendarDaysIcon className="w-4 h-4 text-brand-500" />{meeting.next_meeting.next_date || 'TBD'}</span>
-            <span className="flex items-center gap-2"><ClockIcon className="w-4 h-4 text-brand-500" />{meeting.next_meeting.next_time || 'TBD'}</span>
+      {/* ── Next Meeting (Moved to top according to request) ── */}
+      {meeting.next_meeting && (meeting.next_meeting.next_date || meeting.next_meeting.next_time) && (
+        <Section title="Next Meeting Schedule" icon={<CalendarDaysIcon className="w-[18px] h-[18px]" />}>
+          <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20">
+            {meeting.next_meeting.next_date && (
+              <div className="text-[13px] font-semibold text-orange-800 dark:text-orange-400">📅 Date: {meeting.next_meeting.next_date}</div>
+            )}
+            {meeting.next_meeting.next_time && (
+              <div className="text-[13px] font-semibold text-orange-800 dark:text-orange-400">⏰ Time: {meeting.next_meeting.next_time}</div>
+            )}
           </div>
         </Section>
       )}
@@ -166,8 +171,15 @@ export default function MeetingDetailPage() {
                     {a.user_name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-semibold text-slate-800 dark:text-white truncate">{a.user_name}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{a.email || 'No email'}</p>
+                    <div className="flex flex-col gap-1 w-full pl-2 border-l-2 border-slate-200 dark:border-slate-700">
+                      <p className="text-[13px] font-semibold text-slate-800 dark:text-white truncate">{a.user_name} {a.designation ? `- ${a.designation}` : ''}</p>
+                      <p className="text-[11px] text-slate-500 font-medium truncate">
+                        {a.email || 'No email'} {a.whatsapp_number ? `| ${a.whatsapp_number}` : ''}
+                      </p>
+                      {a.remarks && (
+                        <p className="text-[11px] text-slate-400 italic">"{a.remarks}"</p>
+                      )}
+                    </div>
                   </div>
                   <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border shrink-0 ${present ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'}`}>
                     {present ? '✓ Present' : '✗ Absent'}

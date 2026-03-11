@@ -39,6 +39,7 @@ class DashboardService:
                 title=m.title,
                 organization=m.organization,
                 date=m.date,
+                time=m.time,
                 venue=m.venue,
                 created_at=m.created_at,
                 task_count=len(m.tasks) if m.tasks else 0,
@@ -54,16 +55,23 @@ class DashboardService:
         # Meeting trends (last 6 months)
         trends = []
         today = date.today()
+        import calendar
         for i in range(5, -1, -1):
-            d = today - timedelta(days=30 * i)
+            m = today.month - i
+            y = today.year
+            while m <= 0:
+                m += 12
+                y -= 1
             result = await db.execute(
                 select(func.count(Meeting.id))
                 .where(
-                    extract("month", Meeting.created_at) == d.month,
-                    extract("year", Meeting.created_at) == d.year,
+                    extract("month", Meeting.date) == m,
+                    extract("year", Meeting.date) == y,
                 )
             )
-            trends.append(MeetingTrend(month=d.strftime("%b %Y"), count=result.scalar() or 0))
+            # Create e.g. "Mar 2026"
+            month_name = f"{calendar.month_abbr[m]} {y}"
+            trends.append(MeetingTrend(month=month_name, count=result.scalar() or 0))
 
         overdue_resp = [
             TaskResponse.model_validate(t) for t in overdue_list

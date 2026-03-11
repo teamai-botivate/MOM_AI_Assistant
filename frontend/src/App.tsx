@@ -10,11 +10,6 @@ import ScheduleMeetingPage from './pages/ScheduleMeetingPage';
 import LogMOMPage from './pages/LogMOMPage';
 import UploadMOMPage from './pages/UploadMOMPage';
 import CreateMOMPage from './pages/CreateMOMPage';
-import BoardResolutionsPage from './pages/BoardResolutionsPage';
-import CreateBRPage from './pages/CreateBRPage';
-import BRDetailPage from './pages/BRDetailPage';
-import UploadBRPage from './pages/UploadBRPage';
-import ScheduleBRPage from './pages/ScheduleBRPage';
 
 import TasksPage from './pages/TasksPage';
 import AttendancePage from './pages/AttendancePage';
@@ -42,13 +37,6 @@ export default function App() {
               <Route path="/schedule-meeting" element={<ScheduleMeetingPage />} />
               <Route path="/upload" element={<UploadMOMPage />} />
               <Route path="/create-mom" element={<CreateMOMPage />} />
-              {/* Board Resolutions */}
-              <Route path="/board-resolutions" element={<BoardResolutionsPage />} />
-              <Route path="/create-br" element={<CreateBRPage />} />
-              <Route path="/board-resolutions/:id" element={<BRDetailPage />} />
-              <Route path="/upload-br" element={<UploadBRPage />} />
-              <Route path="/schedule-br" element={<ScheduleBRPage />} />
-              {/* Other */}
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/users" element={<UsersPage />} />

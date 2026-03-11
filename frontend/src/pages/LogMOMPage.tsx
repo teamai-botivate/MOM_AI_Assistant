@@ -92,9 +92,9 @@ export default function LogMOMPage() {
         next_meeting:
           form.next_meeting && (form.next_meeting.next_date?.trim() !== '' || form.next_meeting.next_time?.trim() !== '')
             ? {
-                next_date: form.next_meeting.next_date && form.next_meeting.next_date.trim() !== '' ? form.next_meeting.next_date : null,
-                next_time: form.next_meeting.next_time && form.next_meeting.next_time.trim() !== '' ? form.next_meeting.next_time : null,
-              }
+              next_date: form.next_meeting.next_date && form.next_meeting.next_date.trim() !== '' ? form.next_meeting.next_date : null,
+              next_time: form.next_meeting.next_time && form.next_meeting.next_time.trim() !== '' ? form.next_meeting.next_time : null,
+            }
             : null,
       };
       await api.post(`/meetings/${id}/mom`, payload);
@@ -168,7 +168,7 @@ export default function LogMOMPage() {
           {form.tasks.map((t, i) => (
             <div key={i} className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3 items-start p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
               <input placeholder="Task title" value={t.title} onChange={(e) => updateTask(i, 'title', e.target.value)} className={inputClass} />
-              
+
               <div className="md:col-span-2 flex flex-col gap-2">
                 <select
                   value={(t as any)._manualMode ? '__OTHER__' : (t.responsible_person || '')}
@@ -209,7 +209,7 @@ export default function LogMOMPage() {
                   ))}
                   <option value="__OTHER__">Other / Manual</option>
                 </select>
-                
+
                 {(t as any)._manualMode && (
                   <div className="grid grid-cols-2 gap-2">
                     <input placeholder="Name" value={t.responsible_person || ''} onChange={(e) => updateTask(i, 'responsible_person', e.target.value)} className={inputClass} />

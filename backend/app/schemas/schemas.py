@@ -59,6 +59,9 @@ class TokenData(BaseModel):
 class AttendeeCreate(BaseModel):
     user_name: str
     email: Optional[str] = None
+    designation: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    remarks: Optional[str] = None
     attendance_status: AttendanceStatus = AttendanceStatus.PRESENT
 
 
@@ -72,6 +75,9 @@ class AttendeeResponse(BaseModel):
     meeting_id: int
     user_name: str
     email: Optional[str]
+    designation: Optional[str]
+    whatsapp_number: Optional[str]
+    remarks: Optional[str]
     attendance_status: AttendanceStatus
 
     class Config:
@@ -180,28 +186,18 @@ class NextMeetingResponse(BaseModel):
 
 class MeetingCreate(BaseModel):
     title: str
-    organization: Optional[str] = None
+    organization: Optional[str] = "Botivate Services LLP"
     meeting_type: Optional[str] = None
+    meeting_mode: Optional[str] = None
     date: date
     time: time
     venue: Optional[str] = None
-    called_by: Optional[str] = None
-    prepared_by: Optional[str] = None
+    hosted_by: Optional[str] = None
     attendees: list[AttendeeCreate] = []
     agenda_items: list[AgendaItemCreate] = []
     discussion_summary: Optional[str] = None
     tasks: list[TaskCreate] = []
     next_meeting: Optional[NextMeetingCreate] = None
-    # Board Resolution fields
-    is_board_resolution: bool = False
-    resolution_type: Optional[str] = None
-    resolution_status: Optional[str] = None
-    resolution_text: Optional[str] = None
-    proposer: Optional[str] = None
-    seconder: Optional[str] = None
-    voting_for: Optional[int] = 0
-    voting_against: Optional[int] = 0
-    voting_abstain: Optional[int] = 0
 
 
 class MeetingMOMUpdate(BaseModel):
@@ -217,26 +213,14 @@ class MeetingResponse(BaseModel):
     title: str
     organization: Optional[str]
     meeting_type: Optional[str]
+    meeting_mode: Optional[str]
     date: Optional[date]
     time: Optional[time]
     venue: Optional[str]
-    called_by: Optional[str]
-    prepared_by: Optional[str]
+    hosted_by: Optional[str]
     file_path: Optional[str]
     created_by: Optional[int]
     created_at: datetime
-    # BR fields
-    is_board_resolution: bool = False
-    resolution_number: Optional[str] = None
-    resolution_type: Optional[str] = None
-    resolution_status: Optional[str] = None
-    resolution_text: Optional[str] = None
-    proposer: Optional[str] = None
-    seconder: Optional[str] = None
-    voting_for: Optional[int] = 0
-    voting_against: Optional[int] = 0
-    voting_abstain: Optional[int] = 0
-    # Relations
     attendees: list[AttendeeResponse] = []
     agenda_items: list[AgendaItemResponse] = []
     discussion: Optional[DiscussionResponse] = None
@@ -252,15 +236,10 @@ class MeetingListResponse(BaseModel):
     title: str
     organization: Optional[str]
     date: Optional[date]
+    time: Optional[time]
     venue: Optional[str]
     created_at: datetime
     task_count: int = 0
-    # BR fields for list view
-    is_board_resolution: bool = False
-    resolution_number: Optional[str] = None
-    resolution_status: Optional[str] = None
-    proposer: Optional[str] = None
-    seconder: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -293,20 +272,6 @@ class FileResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ── BR Document Schemas ──────────────────────────────────────────────────
-
-class BRDocumentResponse(BaseModel):
-    id: int
-    meeting_id: int
-    file_name: str
-    file_path: str
-    file_size: Optional[int]
-    file_type: Optional[str]
-    uploaded_at: datetime
-
-    class Config:
-        from_attributes = True
 
 # ── Dashboard / Analytics Schemas ──────────────────────────────────────
 
@@ -346,6 +311,9 @@ class AnalyticsResponse(BaseModel):
 class ExtractedParticipant(BaseModel):
     name: str
     email: Optional[str] = None
+    designation: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    remarks: Optional[str] = None
     status: AttendanceStatus = AttendanceStatus.PRESENT
 
 
@@ -366,11 +334,11 @@ class ExtractedMOM(BaseModel):
     organization_name: Optional[str] = None
     meeting_title: Optional[str] = None
     meeting_type: Optional[str] = None
+    meeting_mode: Optional[str] = None
     date: Optional[str] = None
     time: Optional[str] = None
     venue: Optional[str] = None
-    meeting_called_by: Optional[str] = None
-    meeting_prepared_by: Optional[str] = None
+    hosted_by: Optional[str] = None
     attendees: list[ExtractedParticipant] = []
     absentees: list[ExtractedParticipant] = []
     agenda: list[ExtractedAgenda] = []

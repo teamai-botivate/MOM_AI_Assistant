@@ -20,12 +20,9 @@ router = APIRouter()
 ALLOWED_EXTENSIONS = {".pdf", ".txt"}
 
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Form
-
 @router.post("/mom", response_model=MeetingResponse)
 async def upload_and_process_mom(
     file: UploadFile = File(...),
-    is_board_resolution: bool = Form(False),
     db: AsyncSession = Depends(get_db),
 ):
     """Upload a MOM file (PDF/TXT), run through AI extraction pipeline, and save."""
@@ -63,7 +60,7 @@ async def upload_and_process_mom(
 
     # Save to database
     meeting = await MeetingService.create_from_extraction(
-        db, extracted_mom, created_by=None, file_path=file_path, is_board_resolution=is_board_resolution
+        db, extracted_mom, created_by=None, file_path=file_path
     )
 
     # Reload with all relationships before accessing them
