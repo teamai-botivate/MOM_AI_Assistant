@@ -237,6 +237,14 @@ class MeetingResponse(BaseModel):
     venue: Optional[str]
     hosted_by: Optional[str]
     file_path: Optional[str]
+    pdf_link: Optional[str] = None
+    drive_file_id: Optional[str] = None
+    drive_folder_id: Optional[str] = None
+    recording_link: Optional[str] = None
+    drive_recording_id: Optional[str] = None
+    drive_transcript_id: Optional[str] = None
+    ai_summary_link: Optional[str] = None
+    drive_logs_link: Optional[str] = None
     created_by: Optional[int]
     created_at: datetime
     attendees: list[AttendeeResponse] = []
@@ -261,6 +269,8 @@ class MeetingListResponse(BaseModel):
     created_at: datetime
     task_count: int = 0
     status: str = "Scheduled"
+    pdf_link: Optional[str] = None
+    recording_link: Optional[str] = None
 
     class Config:
         from_attributes = True

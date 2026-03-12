@@ -60,6 +60,13 @@ def _row_to_meeting_obj(m: dict, attendees=None, agenda_items=None, discussion=N
         "created_by": _to_int(str(m.get("created_by", ""))) if m.get("created_by") else None,
         "created_at": datetime.fromisoformat(m["created_at"]) if m.get("created_at") else datetime.utcnow(),
         "pdf_link": m.get("pdf_link") or None,
+        "drive_file_id": m.get("drive_file_id") or None,
+        "drive_folder_id": m.get("drive_folder_id") or None,
+        "recording_link": m.get("recording_link") or None,
+        "drive_recording_id": m.get("drive_recording_id") or None,
+        "drive_transcript_id": m.get("drive_transcript_id") or None,
+        "ai_summary_link": m.get("ai_summary_link") or None,
+        "drive_logs_link": m.get("drive_logs_link") or None,
         "status": m.get("status") or "Scheduled",
         "attendees": attendees or [],
         "agenda_items": agenda_items or [],
@@ -376,21 +383,34 @@ class MeetingService:
         if not m:
             return False
             
-        # 1. Delete the Entire meeting subfolder from Drive (RECURSIVE DELETE)
+        # 1. Drive Cleanup: Delete the Entire folder (recursive)
         folder_id = m.get("drive_folder_id")
         if folder_id:
             delete_from_drive(folder_id)
         else:
-            # Fallback for old records: Delete individual file
-            drive_id = m.get("drive_file_id")
-            if drive_id:
-                delete_from_drive(drive_id)
+            # Fallback for legacy records
+            if m.get("drive_file_id"): delete_from_drive(m["drive_file_id"])
+            if m.get("drive_recording_id"): delete_from_drive(m["drive_recording_id"])
 
-        # Delete all related rows
-        for sheet in ["Attendees", "Agenda", "Discussions", "Tasks", "NextMeeting", "Files"]:
+        # 2. Database Cleanup (Cascading)
+        # First, find tasks to clean TaskHistory
+        tasks = SheetsDB.get_by_field("Tasks", "meeting_id", meeting_id)
+        for t in tasks:
+            tid = _to_int(str(t.get("id", "")))
+            if tid:
+                SheetsDB.delete_by_field("TaskHistory", "task_id", tid)
+
+        # Clear other related sheets
+        related_sheets = [
+            "Attendees", "Agenda", "Discussions", "Tasks", 
+            "NextMeeting", "Files"
+        ]
+        for sheet in related_sheets:
             SheetsDB.delete_by_field(sheet, "meeting_id", meeting_id)
             
+        # Finally delete the meeting itself
         SheetsDB.delete_row("Meetings", meeting_id)
+        logger.info(f"Meeting {meeting_id} and all related data purged.")
         return True
 
     @staticmethod

@@ -17,6 +17,12 @@ langchain-openai==0.0.2
 langgraph==0.0.20
 openai==1.6.1
 tiktoken==0.5.2
+faster-whisper==0.10.0
+transformers==4.36.2
+torch==2.1.2
+soundfile==0.12.1
+accelerate==0.25.0
+sentencepiece==0.1.99
 
 # PDF Processing
 PyPDF2==3.0.1

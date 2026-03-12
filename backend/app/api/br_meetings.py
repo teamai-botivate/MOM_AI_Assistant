@@ -51,6 +51,7 @@ async def create_br_meeting(data: MeetingCreate):
                 date=str(br.date) if br.date else "TBD",
                 time=str(br.time) if br.time else "TBD",
                 venue=br.venue or "TBD",
+                remarks=getattr(attendee, "remarks", None),
                 is_br=True
             )
     return br

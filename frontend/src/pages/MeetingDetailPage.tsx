@@ -12,7 +12,10 @@ import {
   ArrowDownTrayIcon,
   PencilSquareIcon,
   CheckCircleIcon,
+  MicrophoneIcon,
+  DocumentIcon,
 } from '@heroicons/react/24/outline';
+import RecordingOverlay from '../components/RecordingOverlay';
 import toast from 'react-hot-toast';
 import api from '../api';
 import type { Meeting } from '../types';
@@ -49,6 +52,11 @@ export default function MeetingDetailPage() {
     queryKey: ['meeting', id],
     queryFn: async () => (await api.get(`/meetings/${id}`)).data,
   });
+
+  const fetchMeeting = () => {
+    queryClient.invalidateQueries({ queryKey: ['meeting', id] });
+    queryClient.refetchQueries({ queryKey: ['meeting', id] });
+  };
 
   const handleDeleteMeeting = async () => {
     if (!meeting || !window.confirm(`Delete "${meeting.title}"?\nThis action cannot be undone.`)) return;
@@ -131,7 +139,14 @@ export default function MeetingDetailPage() {
         <Link to="/meetings" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 transition-colors">
           <ArrowLeftIcon className="w-4 h-4" /> Back to Meetings
         </Link>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {meeting.status === 'Scheduled' && (
+            <RecordingOverlay 
+              meetingId={meeting.id} 
+              meetingType="Regular" 
+              onComplete={fetchMeeting} 
+            />
+          )}
           {canAction && (
             <>
               <button
@@ -205,6 +220,87 @@ export default function MeetingDetailPage() {
             {meeting.next_meeting.next_time && (
               <div className="text-[13px] font-semibold text-orange-800 dark:text-orange-400">⏰ Time: {meeting.next_meeting.next_time}</div>
             )}
+          </div>
+        </Section>
+      )}
+
+      {/* ── Meeting Intelligence Archive (4-Asset Architecture) ── */}
+      {(meeting.recording_link || meeting.ai_summary_link || meeting.drive_transcript_id || meeting.drive_logs_link) && (
+        <Section title="Meeting Intelligence Archive" icon={<MicrophoneIcon className="w-[18px] h-[18px]" />}>
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="space-y-1 text-center sm:text-left">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Central Intelligence Repository</p>
+                  <p className="text-[11px] font-medium text-slate-500 uppercase tracking-tight">4-Asset Cloud Evidence Architecture</p>
+                </div>
+                
+                {/* Audio Player (if present) - Usually local temporary link or legacy */}
+                {meeting.recording_link && (meeting.recording_link.endsWith('.webm') || meeting.recording_link.endsWith('.mp3')) && (
+                    <audio controls className="h-9 w-full max-w-xs">
+                      <source src={meeting.recording_link} type="audio/webm" />
+                    </audio>
+                )}
+              </div>
+
+              {/* Multi-Asset Links Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                {/* 1. Professional MOM */}
+                {meeting.recording_link && !meeting.recording_link.endsWith('.webm') && (
+                  <a href={meeting.recording_link} target="_blank" rel="noreferrer" 
+                     className="flex items-center gap-3 p-3.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-brand-400 dark:hover:border-brand-500 transition-all group">
+                    <DocumentIcon className="w-5 h-5 text-brand-500" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-bold text-slate-800 dark:text-white">Official MOM Report</p>
+                      <p className="text-[10px] text-slate-500 group-hover:text-brand-500">Professional Record</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* 2. Narrative Formatted Summary */}
+                {meeting.ai_summary_link && (
+                  <a href={meeting.ai_summary_link} target="_blank" rel="noreferrer" 
+                     className="flex items-center gap-3 p-3.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-emerald-400 dark:hover:border-emerald-500 transition-all group">
+                    <ClipboardDocumentListIcon className="w-5 h-5 text-emerald-500" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-bold text-slate-800 dark:text-white">Narrative Summary</p>
+                      <p className="text-[10px] text-slate-500 group-hover:text-emerald-500">Concise Discussion Context</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* 3. Full Transcript */}
+                {meeting.drive_transcript_id && (
+                  <a href={meeting.drive_transcript_id} target="_blank" rel="noreferrer" 
+                     className="flex items-center gap-3 p-3.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all group">
+                    <span className="text-[18px] text-blue-500">🎤</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-bold text-slate-800 dark:text-white">Full Verbatim Transcript</p>
+                      <p className="text-[10px] text-slate-500 group-hover:text-blue-500">Complete Speech-to-Text</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* 4. AI Auditing Logs */}
+                {meeting.drive_logs_link && (
+                  <a href={meeting.drive_logs_link} target="_blank" rel="noreferrer" 
+                     className="flex items-center gap-3 p-3.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-orange-400 dark:hover:border-orange-500 transition-all group">
+                    <ClipboardDocumentListIcon className="w-5 h-5 text-orange-500" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-bold text-slate-800 dark:text-white">AI Auditing Logs</p>
+                      <p className="text-[10px] text-slate-500 group-hover:text-orange-500">Step-by-Step Chunk Logic</p>
+                    </div>
+                  </a>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                   AI Extraction Verified & Storage Optimized
+                 </div>
+              </div>
+            </div>
           </div>
         </Section>
       )}

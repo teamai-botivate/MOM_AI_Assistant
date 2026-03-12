@@ -10,6 +10,7 @@ from app.api.notifications import router as notifications_router
 from app.api.dashboard import router as dashboard_router
 from app.api.upload import router as upload_router
 from app.api.br_meetings import router as br_meetings_router
+from app.api.recording import router as recording_router
 
 api_router = APIRouter()
 
@@ -21,3 +22,4 @@ api_router.include_router(notifications_router, prefix="/notifications", tags=["
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(upload_router, prefix="/upload", tags=["Upload & AI"])
 api_router.include_router(br_meetings_router, prefix="/br", tags=["Board Resolutions"])
+api_router.include_router(recording_router, prefix="/recording", tags=["Recording & Local AI"])

@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4"
 
+    # AssemblyAI
+    ASSEMBLY_AI_API_KEY: str = ""
+
     # SMTP
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587

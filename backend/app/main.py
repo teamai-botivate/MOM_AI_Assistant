@@ -1,16 +1,25 @@
 """FastAPI application entry point – Google Sheets backed."""
 
 import os
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.api.router import api_router
 from app.services.scheduler_service import start_scheduler, shutdown_scheduler
 from app.services.google_sheets_service import init_sheets
+
+# Configure logging at a level that shows everything
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("uvicorn") # Use uvicorn's logger settings
+logging.getLogger("recording_api").setLevel(logging.INFO)
+logging.getLogger("ai_service").setLevel(logging.INFO)
 
 settings = get_settings()
 
@@ -46,19 +55,20 @@ app.add_middleware(
 
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
-# Add global validation error handler
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-import logging
-from fastapi import Request
-
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger = logging.getLogger("meeting_creation")
+    try:
+        body = await request.body()
+        body_str = body.decode("utf-8")
+    except Exception:
+        body_str = "<binary or non-utf8 data>"
+    
     logger.error("Validation error: %s", exc.errors())
-    logger.error("Request body: %s", await request.body())
+    logger.error("Request body: %s", body_str)
+    
     return JSONResponse(
         status_code=422,
-        content={"detail": exc.errors(), "body": await request.body()},
+        content={"detail": exc.errors(), "body": body_str},
     )
 
 app.add_exception_handler(RequestValidationError, validation_exception_handler)

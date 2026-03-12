@@ -80,9 +80,9 @@ class NotificationService:
         })
 
     @staticmethod
-    async def notify_meeting_invitation(db, email: str, user_name: str, meeting_title: str, date: str, time: str, venue: str, is_br: bool = False):
+    async def notify_meeting_invitation(db, email: str, user_name: str, meeting_title: str, date: str, time: str, venue: str, remarks: str = None, is_br: bool = False):
         if email:
-            await EmailService.send_meeting_invitation(email, user_name, meeting_title, date, time, venue, is_br=is_br)
+            await EmailService.send_meeting_invitation(email, user_name, meeting_title, date, time, venue, remarks=remarks, is_br=is_br)
             SheetsDB.append_row("Notifications", {
                 "recipient_email": email,
                 "message": f"Invitation: {meeting_title} on {date}",

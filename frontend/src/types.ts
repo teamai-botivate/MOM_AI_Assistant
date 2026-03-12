@@ -87,6 +87,11 @@ export interface Meeting {
   next_meeting?: NextMeeting;
   supporting_documents?: any[];
   status: MeetingStatus;
+  recording_link?: string;
+  pdf_link?: string;
+  ai_summary_link?: string;
+  drive_transcript_id?: string;
+  drive_logs_link?: string;
 }
 
 export interface MeetingListItem {
@@ -99,6 +104,8 @@ export interface MeetingListItem {
   created_at: string;
   task_count: number;
   status: MeetingStatus;
+  recording_link?: string;
+  pdf_link?: string;
 }
 
 export interface Notification {

@@ -247,7 +247,8 @@ async def create_meeting(data: MeetingCreate):
                 meeting_title=meeting.title,
                 date=str(meeting.date) if meeting.date else "TBD",
                 time=str(meeting.time) if meeting.time else "TBD",
-                venue=meeting.venue or "TBD"
+                venue=meeting.venue or "TBD",
+                remarks=getattr(attendee, "remarks", None)
             )
 
     for task in meeting.tasks:

@@ -187,15 +187,26 @@ class EmailService:
         await EmailService.send_email(to_email, subject, html)
 
     @staticmethod
-    async def send_meeting_invitation(to_email: str, recipient_name: str, meeting_title: str, date: str, time: str, venue: str, is_br: bool = False):
+    async def send_meeting_invitation(to_email: str, recipient_name: str, meeting_title: str, date: str, time: str, venue: str, remarks: str = None, is_br: bool = False):
         subject = f"Official Board Resolution Invitation: {meeting_title}" if is_br else f"Meeting Invitation: {meeting_title}"
         intro = "You are hereby formally invited to review and deliberate upon an upcoming Board Resolution." if is_br else "You have been officially invited to the upcoming scheduled meeting."
         meeting_label = "RESOLUTION TITLE" if is_br else "MEETING TITLE"
         
+        remarks_html = ""
+        if remarks:
+            remarks_style = "background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e;" if is_br else "background-color: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1;"
+            remarks_html = f"""
+            <div style="{remarks_style} padding: 16px; border-radius: 6px; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 14px; line-height: 1.6;"><strong>Personal Note for you:</strong> {remarks}</p>
+            </div>
+            """
+
         content = f"""
             <p style="font-size: 16px; color: #475569; margin: 0 0 16px;">Dear {recipient_name},</p>
-            <p style="font-size: 15px; color: #334155; line-height: 1.6; margin: 0 0 24px;">{intro}</p>
+            <p style="font-size: 15px; color: #334155; line-height: 1.6; margin: 0 0 18px;">{intro}</p>
             
+            {remarks_html}
+
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
                 <tr>
                     <td colspan="2" style="background-color: #f8fafc; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a; font-size: 16px;">

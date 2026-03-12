@@ -130,27 +130,40 @@ class BRService:
         if not m:
             return False
             
-        # 1. Delete the Entire meeting subfolder from Drive (RECURSIVE DELETE)
+        # 1. Drive Cleanup: Delete the Entire folder (recursive)
         folder_id = m.get("drive_folder_id")
         if folder_id:
             delete_from_drive(folder_id)
         else:
-            # Fallback for old records: Delete individual files
-            drive_id = m.get("drive_file_id")
-            if drive_id:
-                delete_from_drive(drive_id)
-
+            # Fallback for old records
+            if m.get("drive_file_id"): delete_from_drive(m["drive_file_id"])
+            if m.get("drive_recording_id"): delete_from_drive(m["drive_recording_id"])
+            
+            # Legacy Ref files delete
             ref_files = SheetsDB.get_by_field("BR_Files", "meeting_id", meeting_id)
             for rf in ref_files:
-                fid = rf.get("drive_file_id")
-                if fid:
-                    delete_from_drive(fid)
+                if rf.get("drive_file_id"): delete_from_drive(rf["drive_file_id"])
 
-        # 3. Cleanup database
-        for sheet in ["BR_Directors", "BR_Agenda", "BR_Discussions", "BR_Tasks", "BR_NextMeeting", "BR_Files"]:
+        # 2. Database Cleanup (Cascading)
+        # Note: TaskHistory might be shared or prefixed, but standard is 'TaskHistory'
+        tasks = SheetsDB.get_by_field("BR_Tasks", "meeting_id", meeting_id)
+        for t in tasks:
+            tid = _to_int(str(t.get("id", "")))
+            if tid:
+                # We assume BR tasks also log to TaskHistory if implemented
+                SheetsDB.delete_by_field("TaskHistory", "task_id", tid)
+
+        # Clear BR specific related sheets
+        related_sheets = [
+            "BR_Directors", "BR_Agenda", "BR_Discussions", "BR_Tasks", 
+            "BR_NextMeeting", "BR_Files"
+        ]
+        for sheet in related_sheets:
             SheetsDB.delete_by_field(sheet, "meeting_id", meeting_id)
             
+        # Finally delete from the main BR table
         SheetsDB.delete_row("BR_Meetings", meeting_id)
+        logger.info(f"BR Meeting {meeting_id} and all related data purged.")
         return True
 
     @staticmethod

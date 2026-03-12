@@ -48,6 +48,9 @@ class DashboardService:
                 venue=m.venue,
                 created_at=m.created_at,
                 task_count=len(m.tasks) if hasattr(m, 'tasks') and m.tasks else 0,
+                status=m.status,
+                pdf_link=m.pdf_link,
+                recording_link=m.recording_link,
             )
             for m in recent
         ]
@@ -152,7 +155,7 @@ def _meeting_obj_to_response(m) -> MeetingResponse:
     """Convert a DotDict meeting object to MeetingResponse schema."""
     from app.schemas.schemas import (
         AttendeeResponse, AgendaItemResponse, DiscussionResponse,
-        TaskResponse as TR, NextMeetingResponse,
+        TaskResponse as TR, NextMeetingResponse, FileResponse,
     )
 
     attendees_resp = [
@@ -188,6 +191,13 @@ def _meeting_obj_to_response(m) -> MeetingResponse:
             id=m.next_meeting.id, meeting_id=m.next_meeting.meeting_id,
             next_date=m.next_meeting.next_date, next_time=m.next_meeting.next_time,
         )
+    
+    files_resp = [
+        FileResponse(
+            id=f.id, meeting_id=f.meeting_id, file_path=f.file_path,
+            file_type=f.file_type, uploaded_at=f.uploaded_at,
+        ) for f in (getattr(m, 'supporting_documents', []) or [])
+    ]
 
     return MeetingResponse(
         id=m.id, title=m.title, organization=m.organization,
@@ -196,4 +206,13 @@ def _meeting_obj_to_response(m) -> MeetingResponse:
         file_path=m.file_path, created_by=m.created_by, created_at=m.created_at,
         attendees=attendees_resp, agenda_items=agenda_resp,
         discussion=disc_resp, tasks=tasks_resp, next_meeting=nm_resp,
+        status=m.status,
+        pdf_link=getattr(m, 'pdf_link', None),
+        drive_file_id=getattr(m, 'drive_file_id', None),
+        drive_folder_id=getattr(m, 'drive_folder_id', None),
+        recording_link=getattr(m, 'recording_link', None),
+        drive_recording_id=getattr(m, 'drive_recording_id', None),
+        drive_transcript_id=getattr(m, 'drive_transcript_id', None),
+        ai_summary_link=getattr(m, 'ai_summary_link', None),
+        supporting_documents=files_resp
     )

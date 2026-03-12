@@ -42,7 +42,7 @@ Extract the following information and return it as a valid JSON object:
     "agenda": [
         {{"topic": "Agenda topic title", "description": "Brief description"}}
     ],
-    "discussion_summary": "Comprehensive summary of discussions",
+    "discussion_summary": "Point-wise bulleted summary of key discussions and outcomes (5-8 points)",
     "action_items": [
         {{
             "task": "Description of the task",
