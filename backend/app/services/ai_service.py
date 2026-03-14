@@ -150,7 +150,8 @@ class AIService:
         logger.info("📊 [DEBUG] Extracting concise dashboard summary points...")
         dashboard_prompt = ChatPromptTemplate.from_template(
             "Extract 5-8 most critical, high-impact bullet points from these meeting summaries for a dashboard view. "
-            "Keep them short, action-oriented, and easy to read at a glance:\n\nSummaries:\n{summaries}"
+            "Keep them short, action-oriented, and easy to read at a glance.\n"
+            "CRITICAL INSTRUCTION: Return the response in PLAIN TEXT ONLY. Do NOT use any Markdown formatting, bolding (**), italics, or hashtags. Just use a simple dash (-) for bullet points.\n\nSummaries:\n{summaries}"
         )
         dashboard_chain = dashboard_prompt | llm | StrOutputParser()
         brief_summary = await dashboard_chain.ainvoke({"summaries": combined_summaries_text})

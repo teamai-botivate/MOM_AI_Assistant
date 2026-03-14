@@ -366,36 +366,7 @@ class MeetingService:
         # Mark as Completed
         SheetsDB.update_row("Meetings", meeting_id, {"status": "Completed"})
 
-        # Notify Attendees with Final MOM & Remarks
-        final_meeting = await MeetingService.get_meeting(db, meeting_id)
-        if final_meeting and final_meeting.attendees:
-            # Import here to avoid circular dependencies
-            from app.notifications.notification_service import NotificationService
-            
-            # Prepare task list HTML for email
-            task_html = ""
-            if final_meeting.tasks:
-                task_html = "<table border='1' style='border-collapse:collapse;width:100%;margin:16px 0;'><tr style='background:#f0f4f8;'><th style='padding:10px;'>Task</th><th style='padding:10px;'>Owner</th><th style='padding:10px;'>Deadline</th></tr>"
-                for t in final_meeting.tasks:
-                    deadline_str = str(t.deadline) if t.deadline else "N/A"
-                    task_html += f"<tr><td style='padding:10px;'>{t.title}</td><td style='padding:10px;'>{t.responsible_person or 'None'}</td><td style='padding:10px;'>{deadline_str}</td></tr>"
-                task_html += "</table>"
-            else:
-                task_html = "<p>No new tasks assigned.</p>"
-
-            for attendee in final_meeting.attendees:
-                if attendee.email:
-                    is_absent = (str(attendee.attendance_status).strip() != "Present")
-                    await NotificationService.notify_meeting_summary(
-                        None, email=attendee.email, user_name=attendee.user_name,
-                        meeting_title=meeting.title, is_absent=is_absent,
-                        summary=data.discussion_summary or "Attached in MOM.", 
-                        task_html=task_html, 
-                        remarks=attendee.remarks,
-                        is_br=False
-                    )
-
-        return final_meeting
+        return await MeetingService.get_meeting(db, meeting_id)
 
     @staticmethod
     async def list_meetings(db, skip: int = 0, limit: int = 50):

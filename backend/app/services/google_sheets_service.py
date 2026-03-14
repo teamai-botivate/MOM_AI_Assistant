@@ -515,11 +515,23 @@ def upload_to_drive(file_bytes: bytes, filename: str, mimetype: str = "applicati
     ).execute()
 
     # Make file publicly readable
-    drive_service.permissions().create(
-        fileId=file["id"],
-        body={"type": "anyone", "role": "reader"},
-        supportsAllDrives=True
-    ).execute()
+    import time
+    from googleapiclient.errors import HttpError
+    for attempt in range(5):
+        try:
+            drive_service.permissions().create(
+                fileId=file["id"],
+                body={"type": "anyone", "role": "reader"},
+                supportsAllDrives=True
+            ).execute()
+            break  # Success
+        except HttpError as error:
+            if error.resp.status in [500, 502, 503, 504] and attempt < 4:
+                logger.warning(f"Transient error setting permissions for {filename}, retrying in {2 ** attempt}s...")
+                time.sleep(2 ** attempt)
+            else:
+                logger.error(f"Failed to set permissions for {filename} after {attempt + 1} attempts.")
+                raise
 
     logger.info("Uploaded %s to Drive -> %s: %s", filename, subfolder_name, file.get("webViewLink"))
     return {"id": file["id"], "webViewLink": file.get("webViewLink", "")}

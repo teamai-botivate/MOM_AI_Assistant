@@ -172,10 +172,15 @@ async def update_br_with_resolution(
                     meeting_title=br.title, is_absent=is_absent,
                     summary=br.discussion.summary_text if br.discussion else "",
                     task_html=task_html, pdf_data=pdf_bytes, pdf_name=pdf_name,
-                    remarks=getattr(attendee, "remarks", None),
                     is_br=True
                 )
         
+        # Notify task assignees
+        if br.tasks:
+            for db_task in br.tasks:
+                if getattr(db_task, "responsible_email", None):
+                    await NotificationService.notify_task_assigned(None, db_task, br.title, is_br=True)
+
         return br
     except HTTPException:
         raise

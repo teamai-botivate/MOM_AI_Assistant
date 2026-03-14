@@ -314,14 +314,14 @@ async def add_mom_to_meeting(meeting_id: int, data: MeetingMOMUpdate):
                 None, email=attendee.email, user_name=attendee.user_name,
                 meeting_title=meeting.title, is_absent=is_absent,
                 summary=meeting.discussion.summary_text if meeting.discussion else "",
-                task_html=task_html, pdf_data=pdf_data, pdf_name=pdf_name,
-                remarks=getattr(attendee, "remarks", None),
+                task_html=task_html, pdf_data=pdf_data, pdf_name=pdf_name
             )
 
-    for t_create in data.tasks:
-        db_task = next((t for t in meeting.tasks if t.title == t_create.title), None)
-        if db_task:
-            await NotificationService.notify_task_assigned(None, db_task, meeting.title)
+    # Notify task assignees
+    if meeting.tasks:
+        for db_task in meeting.tasks:
+            if getattr(db_task, "responsible_email", None):
+                await NotificationService.notify_task_assigned(None, db_task, meeting.title)
 
     return meeting
 

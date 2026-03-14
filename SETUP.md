@@ -1,118 +1,174 @@
-# ⚙️ Environment Setup & Google Cloud Guide
+# ⚙️ Environment Setup & Configuration Guide
 
-This document outlines the prerequisites, Google Cloud configuration, local development environment setup, and deployment processes for the **Botivate Agentic MOM System**.
+This document outlines the prerequisites, Google Cloud configuration, backend artificial intelligence setup, local development environment setup, and deployment processes for the **Botivate Agentic MOM System**.
 
 ---
 
 ## 🛑 Prerequisites
 
-Ensure your system possesses the following dependencies before proceeding:
+Ensure your system processes the following dependencies before proceeding:
 
-1. **Node.js** (v18.0.0 or higher) - For React + Vite Frontend
-2. **Python** (v3.10.0 or higher) - For FastAPI Backend
-3. **Google Account** - To manage Google Sheets and Google Drive storage
-4. **Git** - For version control
+1. **Node.js** (v18.0.0 or higher) - Required for React + Vite Frontend compilation.
+2. **Python** (v3.10.0 or higher) - Required for FastAPI Backend and AI libraries.
+3. **Google Account** - To manage Google Sheets databases and Google Drive archival storage.
+4. **Git** - For version control and deployment.
+5. **OpenAI Account** - For LangChain LLM capabilities.
+6. **AssemblyAI Account** - For cloud-based Speech-to-Text accuracy.
 
 ---
 
-## ☁️ Google Cloud Setup (CRITICAL)
+## ☁️ 1. Google Cloud Setup (CRITICAL)
 
-Botivate uses Google Sheets as a database and Google Drive for file archival. Follow these steps exactly to connect the system.
+Botivate uses **Google Sheets** as a database and **Google Drive** for file and generated PDF archival. Follow these steps meticulously:
 
-### 1. Create a Google Cloud Project
-- Go to the [Google Cloud Console](https://console.cloud.google.com/).
-- Create a new project (e.g., `MOM-AI-Assistant`).
+### Step 1.1: Create a Google Cloud Project
+- Navigate to the [Google Cloud Console](https://console.cloud.google.com/).
+- Create a new project named (e.g., `MOM-AI-Assistant-DB`).
 
-### 2. Enable APIs
-Enable the following APIs in your project:
+### Step 1.2: Enable APIs
+Enable the following two APIs in your newly created project via the "API Library":
 - **Google Sheets API**
 - **Google Drive API**
 
-### 3. Create a Service Account
+### Step 1.3: Create a Service Account
 - Navigate to **IAM & Admin > Service Accounts**.
-- Click **Create Service Account**.
-- Give it a name and click **Create and Continue**.
-- Skip optional roles and click **Done**.
+- Click **Create Service Account** and assign it a name (e.g., `botivate-agent`).
+- Complete creation. *No special optional roles are strictly needed at this point.*
 
-### 4. Create and Download JSON Key
-- Click on your new Service Account.
-- Go to the **Keys** tab.
-- Click **Add Key > Create New Key**.
-- Select **JSON** and download the file.
-- **Rename** this file to `google_credentials.json` and move it to the `backend/` directory of this project.
+### Step 1.4: Download the JSON Credential Key
+- Click on your new Service Account from the list.
+- Navigate to the **Keys** tab.
+- Click **Add Key > Create New Key**, select **JSON**, and download the file.
+- **IMPORTANT**: Rename this JSON file to exactly `google_credentials.json` and place it inside the `/backend` directory of this repository. *Do not commit this file to GitHub!*
 
-### 5. Prepare Cloud Storage
-- Create a new **Google Sheet**. Copy its **Spreadsheet ID** from the URL:
-  `https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit`
-- Create a new **Google Drive Folder** to store MOM PDFs. Copy its **Folder ID** from the URL:
-  `https://drive.google.com/drive/folders/[FOLDER_ID]`
-- **IMPORTANT:** Share both the Google Sheet and the Drive Folder with your **Service Account Email** (e.g., `account-name@project-id.iam.gserviceaccount.com`) as an **Editor**.
+### Step 1.5: Prepare Cloud Storage Directories & DB
+- Open [Google Sheets](https://docs.google.com/spreadsheets/u/0/) and create a new, completely blank Spreadsheet.
+  - Copy its **Spreadsheet ID** from the URL (the random string of alphanumeric characters between `/d/` and `/edit`).
+- Open [Google Drive](https://drive.google.com/drive/u/0/) and create a new top-level Folder to store MOM Archive assets (PDFs and Recordings).
+  - Copy its **Drive Folder ID** from the URL (the string after `/folders/`).
+- **SHARING PERMISSIONS (MANDATORY)**: Copy the email address of the Service Account you created in Step 1.3 (e.g., `botivate-agent@your-project.iam.gserviceaccount.com`). Go to the top right corner of your Google Sheet, click "Share", enter that email address, and give it **Editor** permissions. Do the exact same for the Google Drive Folder.
 
 ---
 
-## 🔑 Environment Secrets Configuration
+## 🤖 2. Artificial Intelligence Pipeline Setup
 
-### Backend (`/backend/.env`)
-Create a `.env` file inside the `/backend` directory:
+Botivate's intelligence relies on two core Cloud vendors for processing audio.
+
+### Step 2.1: AssemblyAI Configuration (Audio Processing STT)
+- Create an account on [AssemblyAI](https://www.assemblyai.com/).
+- Navigate to your dashboard and copy your **AssemblyAI API Key**.
+- This enables state-of-the-art multilingual transcriptions (Hindi and English).
+
+### Step 2.2: OpenAI Configuration (MOM Mapping & Reduction)
+- Create a developer account on [OpenAI Platform](https://platform.openai.com/).
+- Ensure your billing is active and fund your account.
+- Navigate to the "API keys" section to generate a new secret key.
+- Save your **OpenAI API Key**.
+
+---
+
+## ✉️ 3. SMTP Mail Configuration Setup
+
+To send automated task deadlines, board resolution MOM attachments, and absence warnings, Botivate utilizes Python's asynchronous `aiosmtplib` directly synced to a conventional Gmail SMTP.
+
+### Step 3.1: Generate a Gmail App Password
+- Log in to the Google account you intend to send system emails from (e.g., `hr@yourdomain.com` or your personal Gmail).
+- Go to "Manage your Google Account" -> "Security".
+- Ensure **2-Step Verification** is turned ON.
+- Search for **App passwords** in the top search bar. 
+- Create a new App name named "MOM Assistant Backend" and generate the 16-character password (e.g., `abcd efgh ijkl mnop`).
+
+---
+
+## 🔑 4. Environment Variables Checklist
+
+Now that all external services are configured, create a `.env` file in the `/backend` root folder:
 
 ```ini
-# App Settings
+# Core Configuration
 APP_NAME="Botivate MOM Agent"
+ENVIRONMENT="development"
+DEBUG=True
 API_V1_PREFIX="/api/v1"
-CORS_ORIGINS=["http://localhost:5173"]
+SECRET_KEY="your-secret-key-here"
 
 # Google Cloud Configuration
+# (Identified from Step 1)
 SPREADSHEET_ID="your_google_sheet_id_here"
 DRIVE_FOLDER_ID="your_google_drive_folder_id_here"
 GOOGLE_CREDENTIALS_FILE="google_credentials.json"
 
-# AI Configuration (Gemini/OpenAI)
-GOOGLE_API_KEY="your_gemini_api_key_here"
+# AI Configuration (Identified from Step 2)
+OPENAI_API_KEY="sk-your-openai-api-key-here"
+OPENAI_MODEL="gpt-4o-mini"
+ASSEMBLY_AI_API_KEY="your-assembly-ai-api-key-here"
 
-# SMTP Mail Configuration (For Automated Dispatch)
-MAIL_USERNAME="your-email@gmail.com"
-MAIL_PASSWORD="your-app-password"
-MAIL_FROM="your-email@gmail.com"
-MAIL_PORT=587
-MAIL_SERVER="smtp.gmail.com"
-MAIL_STARTTLS=True
-MAIL_SSL_TLS=False
+# Mail Configuration (Identified from Step 3)
+SMTP_USER="your-email@gmail.com"
+SMTP_PASSWORD="your-16-char-app-password"
+EMAIL_FROM="Botivate Governance <your-email@gmail.com>"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=587
+
+# App Constants
+DEFAULT_CS_EMAIL="admin@yourcompany.com"
+FRONTEND_URL="http://localhost:5173"
 ```
 
 ---
 
-## 💻 Local Development Setup
+## 💻 5. Running the Application Locally
 
-### 1. Backend Initialization (FastAPI)
-1. Navigate to `backend/`.
-2. Create and activate virtual environment:
+### Step 5.1: Backend Initialization (FastAPI)
+1. Open a terminal and navigate to exactly `backend/`.
+2. Create and activate a dedicated virtual environment:
    ```bash
    python -m venv .venv
-   .\.venv\Scripts\Activate.ps1  # Windows
-   source .venv/bin/activate     # macOS/Linux
+
+   # For Windows PowerShell
+   .\.venv\Scripts\Activate.ps1
+   
+   # For macOS/Linux Git Bash
+   source .venv/bin/activate
    ```
-3. Install dependencies:
+3. Install the application's required dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Start server:
+4. Start the Uvicorn web server:
    ```bash
    uvicorn app.main:app --reload
    ```
+   *The backend will be live at `http://localhost:8000` with Swagger Docs at `/docs`.*
 
-### 2. Frontend Initialization (React)
-1. Navigate to `frontend/`.
-2. Install modules and start:
+### Step 5.2: Frontend Initialization (React/Vite)
+1. Open a separate terminal window and switch to `frontend/`.
+2. Install package node modules:
    ```bash
    npm install
+   ```
+3. Run the development environment:
+   ```bash
    npm run dev
    ```
+   *Navigate your browser to `http://localhost:5173` to see the rich Botivate UI.*
 
 ---
 
-## 🚀 Troubleshooting
-- **403 Forbidden:** Ensure you have shared the Google Sheet and Drive Folder with the Service Account email.
-- **Headers Mismatch:** If you modify `SHEET_SCHEMAS` in `google_sheets_service.py`, you must update the header row in your Google Sheet manually.
+## 🚀 6. Typical Usage & Verification Walkthrough
 
+1. **Verify Connection**: Launch the app and visit the Dashboard. If the KPIs and charts are visible and no `500` errors are rendered, your Google Sheets linkage is highly likely correct.
+2. **Schedule**: Visit the "Meetings" tab. Create a new "Board Resolution" meeting. Submit attendees.
+3. **Execute AI Logs**: Start the meeting, run the audio. Finally click **Record MOM** on the Meeting tile action bar. Provide the audio file recorded in a `.webm` or `.m4a` format to the File Dropzone.
+4. **Processing Watch**: Wait 2-3 minutes while the Dashboard tile shows "Processing". Under the hood, the backend evaluates Assembly STT, LLM map-reduces, creates PDFs, uploads natively to Google Drive subfolders, updates Sheets database properties, and emails everyone individually!
+
+---
+
+## 🆘 Troubleshooting & Common Flaws
+
+1. **`googleapiclient.errors.HttpError 403`**: Caused immediately when attempting to create a meeting. This guarantees your Google Drive Folder or Sheet is entirely missing the *Editor* role given to your `.json` service credential's email address.
+2. **`assemblyai.errors.UnauthorizedError`**: Incorrect STT token. Verify `ASSEMBLY_AI_API_KEY` without trailing spaces.
+3. **`aiosmtplib.errors.SMTPAuthenticationError`**: Your newly generated Google App password has spaces in it. Make sure inside the `.env` the token is squished together (e.g., `abcdefghijklmnop`).
+4. **Missing Sheet Headers:** To allow dynamic column syncing, ensure on your first run that if there is a `KeyError: row index out of bound`, it means the actual visible header titles inside the blank Spreadsheet tabs at row 1 don't match the Python script enums. Ensure your tabs are specifically named `Meetings`, `Attendees`, `Tasks`, `Agenda`, `Discussions`, `Global_Settings`, `Notifications`, `Users`, `BR_Meetings`, `BR_Tasks`, `BR_Discussions`.
 ---
 *Botivate Services LLP © 2026. Secure Governance on Autopilot.*
