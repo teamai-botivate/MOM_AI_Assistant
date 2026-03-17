@@ -38,8 +38,9 @@ CREDENTIALS_FILE = os.path.join(
     "google_credentials.json",
 )
 
-SPREADSHEET_ID = "1VEejcQEil9gGYChPNI00R96XWJBlbHd3j9hib6PrOp0"
-DRIVE_FOLDER_ID = "0AAgyfuup7OPSUk9PVA"
+# These are now fetched from settings for dynamic configuration
+SPREADSHEET_ID = settings.SPREADSHEET_ID
+DRIVE_FOLDER_ID = settings.DRIVE_FOLDER_ID
 
 # ── Sheet Schemas (column definitions) ────────────────────────────────
 # Each key is a worksheet tab name.  The value is an ordered list of

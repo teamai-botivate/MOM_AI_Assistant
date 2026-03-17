@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     CLIENT_CS_EMAIL: str = "prabhatkumarsictc7070@gmail.com"
     SHOW_BOTIVATE_BRANDING: bool = True
     BOTIVATE_SIGNATURE: str = "Powered by Botivate Services LLP"
+    
+    # Google Cloud Configuration
+    SPREADSHEET_ID: str = "1VEejcQEil9gGYChPNI00R96XWJBlbHd3j9hib6PrOp0"
+    DRIVE_FOLDER_ID: str = "0AAgyfuup7OPSUk9PVA"
 
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./mom_assistant.db"

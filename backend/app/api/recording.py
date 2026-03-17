@@ -115,7 +115,7 @@ async def run_ai_pipeline(mid, mtype, path, title, mdate, mtime, folder_id, pare
         # 4. Upload Assets directly to the meeting folder
         logger.info(f"[STAGE 4/6] Uploading Assets directly to meeting folder ID: {folder_id}")
         
-        root_folder_id = ensure_subfolder(parent_root, parent_id="0AAgyfuup7OPSUk9PVA")
+        root_folder_id = ensure_subfolder(parent_root, parent_id=settings.DRIVE_FOLDER_ID)
         
         if not folder_id:
             folder_name = f"{mid} - {title} - {mdate} {mtime}"

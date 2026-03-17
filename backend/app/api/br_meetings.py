@@ -16,9 +16,11 @@ from app.api.meetings import generate_meeting_pdf
 from app.services.file_service import FileService
 from app.workflows.mom_workflow import get_mom_workflow
 from app.notifications.notification_service import NotificationService
+from app.config import get_settings
 
 router = APIRouter()
 logger = logging.getLogger("br_api")
+settings = get_settings()
 
 @router.get("/", response_model=list[MeetingListResponse])
 async def list_br_meetings(skip: int = 0, limit: int = 100):
@@ -113,7 +115,7 @@ async def update_br_with_resolution(
         folder_name = f"{br_id} - {br.title} - {meeting_date} {meeting_time}"
         
         # Root logic: Ensure 'BR Meetings' exists inside AI MOM Storage
-        br_root_id = ensure_subfolder("BR Meetings", parent_id="0AAgyfuup7OPSUk9PVA")
+        br_root_id = ensure_subfolder("BR Meetings", parent_id=settings.DRIVE_FOLDER_ID)
         meeting_folder_id = ensure_subfolder(folder_name, parent_id=br_root_id) 
 
         # Process manually uploaded files and send to DRIVE
@@ -224,7 +226,7 @@ async def upload_br_resolution(file: UploadFile = File(...)):
         folder_name = f"{br.id} - {br.title} - {meeting_date} {meeting_time}"
 
         # Root logic: Ensure 'BR Meetings' exists inside AI MOM Storage
-        br_root_id = ensure_subfolder("BR Meetings", parent_id="0AAgyfuup7OPSUk9PVA")
+        br_root_id = ensure_subfolder("BR Meetings", parent_id=settings.DRIVE_FOLDER_ID)
         meeting_folder_id = ensure_subfolder(folder_name, parent_id=br_root_id)
         
         # MUST generate PDF first

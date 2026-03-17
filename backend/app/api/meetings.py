@@ -223,7 +223,7 @@ async def download_meeting_pdf(meeting_id: int):
     # Upload PDF to Google Drive and update the sheet
     try:
         folder_name = f"{meeting.id} - {meeting.title} - {meeting.date} {meeting.time}"
-        root_id = ensure_subfolder("Meetings", parent_id="0AAgyfuup7OPSUk9PVA")
+        root_id = ensure_subfolder("Meetings", parent_id=settings.DRIVE_FOLDER_ID)
         meeting_folder_id = ensure_subfolder(folder_name, parent_id=root_id)
         
         drive_result = upload_to_drive(
@@ -290,7 +290,7 @@ async def add_mom_to_meeting(meeting_id: int, data: MeetingMOMUpdate):
     # Upload to Drive
     try:
         folder_name = f"{meeting.id} - {meeting.title} - {meeting.date} {meeting.time}"
-        root_id = ensure_subfolder("Meetings", parent_id="0AAgyfuup7OPSUk9PVA")
+        root_id = ensure_subfolder("Meetings", parent_id=settings.DRIVE_FOLDER_ID)
         meeting_folder_id = ensure_subfolder(folder_name, parent_id=root_id)
         
         drive_result = upload_to_drive(
