@@ -148,11 +148,11 @@ const RecordingOverlay: React.FC<Props> = ({ meetingId, meetingType, onComplete 
     };
 
     if (isProcessing) return (
-        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md flex items-center justify-center">
-            <div className="bg-white dark:bg-[#1e2533] p-10 rounded-3xl text-center shadow-2xl space-y-4">
-                <ArrowPathIcon className="w-12 h-12 text-brand-500 animate-spin mx-auto" />
-                <h3 className="text-xl font-bold dark:text-white">Analyzing Meeting Data</h3>
-                <p className="text-sm text-slate-500">Transcribing & Summarizing...</p>
+        <div className="p-4 bg-brand-50 dark:bg-brand-500/5 rounded-2xl border border-brand-200 dark:border-brand-500/20 flex items-center gap-3">
+            <ArrowPathIcon className="w-5 h-5 text-brand-500 animate-spin shrink-0" />
+            <div>
+                <p className="text-[13px] font-bold text-brand-700 dark:text-brand-400">Uploading Recording...</p>
+                <p className="text-[11px] text-slate-500">AI pipeline will start automatically. Check progress below.</p>
             </div>
         </div>
     );

@@ -15,6 +15,45 @@ router = APIRouter()
 logger = logging.getLogger("recording_api")
 settings = get_settings()
 
+# Stage definitions for progress tracking
+PIPELINE_STAGES = {
+    "uploading": {"step": 1, "total": 6, "label": "Uploading audio..."},
+    "transcribing": {"step": 2, "total": 6, "label": "Transcribing audio with AI..."},
+    "summarizing": {"step": 3, "total": 6, "label": "Generating AI summary..."},
+    "generating_pdfs": {"step": 4, "total": 6, "label": "Creating intelligence reports..."},
+    "uploading_assets": {"step": 5, "total": 6, "label": "Uploading assets to Drive..."},
+    "finalizing": {"step": 6, "total": 6, "label": "Finalizing & syncing data..."},
+    "completed": {"step": 6, "total": 6, "label": "Processing complete!"},
+    "failed": {"step": 0, "total": 6, "label": "Processing failed."},
+}
+
+def _update_stage(mid: int, mtype: str, stage: str):
+    """Update processing_stage on the meeting row for frontend polling."""
+    sheet = "BR_Meetings" if mtype == "BR" else "Meetings"
+    SheetsDB.update_row(sheet, mid, {"processing_stage": stage})
+    logger.info(f"[PIPELINE] Stage updated -> {stage} for meeting {mid}")
+
+
+@router.get("/status/{meeting_id}")
+async def get_processing_status(meeting_id: int, meeting_type: str = "Regular"):
+    """Returns the current processing stage of a meeting's AI pipeline."""
+    sheet = "BR_Meetings" if meeting_type == "BR" else "Meetings"
+    m = SheetsDB.get_by_id(sheet, meeting_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    stage_key = m.get("processing_stage", "")
+    stage_info = PIPELINE_STAGES.get(stage_key, {"step": 0, "total": 6, "label": "Waiting..."})
+    
+    return {
+        "meeting_id": meeting_id,
+        "stage": stage_key,
+        "step": stage_info["step"],
+        "total": stage_info["total"],
+        "label": stage_info["label"],
+        "status": m.get("status", "Scheduled"),
+    }
+
 @router.post("/process")
 async def process_meeting_recording(
     background_tasks: BackgroundTasks,
@@ -63,6 +102,9 @@ async def process_meeting_recording(
     dfid = getattr(meeting, 'drive_folder_id', None)
     logger.info(f"Fetched meeting data. Title='{meeting.title}', DriveFolderID='{dfid}'")
 
+    # Mark upload stage
+    _update_stage(meeting_id, meeting_type, "uploading")
+
     # Start background task for AI processing
     background_tasks.add_task(
         run_ai_pipeline,
@@ -84,16 +126,19 @@ async def run_ai_pipeline(mid, mtype, path, title, mdate, mtime, folder_id, pare
         logger.info(f">>> STARTING AI PIPELINE for '{title}' (Meeting ID: {mid})")
         
         # 1. Local Transcription (Whisper)
+        _update_stage(mid, mtype, "transcribing")
         logger.info(f"[STAGE 1/6] Starting local transcription using Faster-Whisper...")
         transcript_text = await AIService.transcribe_audio(path)
         logger.info(f"[STAGE 1/6] Transcription complete. Length: {len(transcript_text.split())} words.")
         
         # 2. Local Summarization (FLAN-T5) with Chunk Logs
+        _update_stage(mid, mtype, "summarizing")
         logger.info(f"[STAGE 2/6] Starting local hierarchical summarization...")
         ai_results = await AIService.summarize_transcript(transcript_text)
         logger.info(f"[STAGE 2/6] Summarization complete.")
         
         # 3. Prepare 3 separate PDF files for Drive (MOM report is handled manually by Admin)
+        _update_stage(mid, mtype, "generating_pdfs")
         logger.info(f"[STAGE 3/6] Packaging 3-Asset Intelligence Archive (PDFs)...")
         
         # Prepare filenames with prefix and ID
@@ -113,6 +158,7 @@ async def run_ai_pipeline(mid, mtype, path, title, mdate, mtime, folder_id, pare
         formatted_pdf = generate_summary_pdf(f"EXECUTIVE BRIEFING for {doc_tag}", mdate, ai_results['formatted_summary'])
         
         # 4. Upload Assets directly to the meeting folder
+        _update_stage(mid, mtype, "uploading_assets")
         logger.info(f"[STAGE 4/6] Uploading Assets directly to meeting folder ID: {folder_id}")
         
         root_folder_id = ensure_subfolder(parent_root, parent_id=settings.DRIVE_FOLDER_ID)
@@ -140,6 +186,7 @@ async def run_ai_pipeline(mid, mtype, path, title, mdate, mtime, folder_id, pare
         logger.info(f"[STAGE 4/6] Audio and 3 PDFs Uploaded directly to folder.")
         
         # 5. Update Sheet with Intelligence Asset Links (Mark as Processing)
+        _update_stage(mid, mtype, "finalizing")
         logger.info(f"[STAGE 5/6] Syncing intelligence links and marking as Processing...")
         update_data = {
             "recording_link": recording_link,
@@ -172,9 +219,11 @@ async def run_ai_pipeline(mid, mtype, path, title, mdate, mtime, folder_id, pare
             else: 
                 SheetsDB.append_row("Discussions", {"meeting_id": mid, "summary_text": ai_results['brief_summary']})
 
+        _update_stage(mid, mtype, "completed")
         logger.info(f"✨ AI PIPELINE FULLY COMPLETED FOR '{title}' (ID: {mid})")
         
     except Exception as e:
+        _update_stage(mid, mtype, "failed")
         logger.error(f"!!! CRITICAL: AI Pipeline failed for meeting {mid}: {e}", exc_info=True)
     finally:
         if os.path.exists(path):

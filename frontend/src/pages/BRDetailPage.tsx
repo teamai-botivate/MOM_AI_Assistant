@@ -21,6 +21,7 @@ import {
     PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
 import RecordingOverlay from '../components/RecordingOverlay';
+import ProcessingBanner from '../components/ProcessingBanner';
 import toast from 'react-hot-toast';
 import api from '../api';
 import type { Meeting, Task } from '../types';
@@ -256,6 +257,15 @@ export default function BRDetailPage() {
                     meetingId={meeting.id} 
                     meetingType="BR" 
                     onComplete={refreshData} 
+                />
+            )}
+
+            {/* ── Processing Progress Banner ── */}
+            {(meeting.status === 'Processing' || meeting.status === 'Scheduled') && (
+                <ProcessingBanner
+                    meetingId={meeting.id}
+                    meetingType="BR"
+                    onComplete={refreshData}
                 />
             )}
 
